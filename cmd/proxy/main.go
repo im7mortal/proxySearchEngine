@@ -2,17 +2,13 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/im7mortal/proxySearchEngine/internal/tls"
 	"log"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"regexp"
 	"text/template"
 	"time"
@@ -105,31 +101,10 @@ func stringFromTemplate(tpl string, srch searchEngine, name string) string {
 	return buff.String()
 }
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
-
-var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-func RandStringRunes(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
-}
-
 func main() {
 	var err error
 	println(searchEnginePlugin)
 	println(searchEngineDiscovery)
-
-	cert := filepath.Join(os.TempDir(), RandStringRunes(18))
-	key := filepath.Join(os.TempDir(), RandStringRunes(18))
-	err = tls.GenerateTLS(context.TODO(), cert, key)
-	if err != nil {
-		log.Fatal(err)
-	}
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(gin.Recovery())
@@ -137,7 +112,7 @@ func main() {
 	r.GET("/discover", discovery)
 	r.GET(searchPluginPath, searchPluginHandler)
 	r.GET("/proxysearchengine", proxysearchengine)
-	err = r.RunTLS(port, cert, key)
+	err = r.Run(port)
 	if err != nil {
 		log.Fatal(err)
 	}
