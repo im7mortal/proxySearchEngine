@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"net/url"
@@ -105,29 +104,25 @@ func main() {
 	var err error
 	println(searchEnginePlugin)
 	println(searchEngineDiscovery)
-	gin.SetMode(gin.ReleaseMode)
-	r := gin.New()
-	r.Use(gin.Recovery())
-
-	r.GET("/discover", discovery)
-	r.GET(searchPluginPath, searchPluginHandler)
-	r.GET("/proxysearchengine", proxysearchengine)
-	err = r.Run(port)
+	http.HandleFunc("/discover", discovery)
+	http.HandleFunc(searchPluginPath, searchPluginHandler)
+	http.HandleFunc(searchPath, proxysearchengine)
+	err = http.ListenAndServe(port, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func discovery(c *gin.Context) {
-	_, err := fmt.Fprintf(c.Writer, searchEngineDiscovery)
+func discovery(w http.ResponseWriter, r *http.Request) {
+	_, err := fmt.Fprintf(w, searchEngineDiscovery)
 	if err != nil {
 		println(err.Error())
 	}
 }
-func searchPluginHandler(c *gin.Context) {
-	c.Header("Content-Type", "application/xml")
-	c.Status(http.StatusOK)
-	_, err := c.Writer.Write([]byte(searchEnginePlugin))
+func searchPluginHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/xml")
+	w.WriteHeader(http.StatusOK)
+	_, err := w.Write([]byte(searchEnginePlugin))
 	if err != nil {
 		println(err.Error())
 	}
@@ -153,9 +148,13 @@ func russianLetters(s string) bool {
 	return cyrilicR.Match([]byte(s))
 }
 
-func proxysearchengine(c *gin.Context) {
+func proxysearchengine(w http.ResponseWriter, r *http.Request) {
+	queries := r.URL.Query()
+	var q string
+	if val, exist := queries[querySearchKey]; exist {
+		q = val[0]
+	}
 	searchUrl := google
-	q := c.Query(querySearchKey)
 	weekday := time.Now().Weekday()
 	if weekday == time.Saturday || weekday == time.Sunday {
 		searchUrl = duckduckgo
@@ -163,8 +162,7 @@ func proxysearchengine(c *gin.Context) {
 	if russianLetters(q) {
 		searchUrl = yandex
 	}
-	c.Redirect(http.StatusPermanentRedirect, searchUrl+url.QueryEscape(q))
-	c.Status(http.StatusOK)
+	http.Redirect(w, r, searchUrl+url.QueryEscape(q), http.StatusPermanentRedirect)
 }
 
 type searchEngine struct {
