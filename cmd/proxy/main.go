@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -39,9 +40,13 @@ func init() {
 	flag.Parse()
 	getEnv(hostEnv, &host)
 	getEnv(portEnv, &port)
+	if ip := net.ParseIP(host); ip != nil {
+		// for local deployments
+		host += port
+	}
 	var searchURL = url.URL{
 		Scheme: "https",
-		Host:   host + port,
+		Host:   host,
 		Path:   searchPath,
 	}
 	var searchEngineConfig = searchEngine{
