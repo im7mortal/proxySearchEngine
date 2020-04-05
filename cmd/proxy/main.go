@@ -14,6 +14,8 @@ import (
 	"time"
 )
 
+var peaceBase64 = " data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAATVJREFUOI2N010uQ1EQB/BfxQONFA9YQLEL3n3tRCWaWoDUBohFIFYhnsQS8FofIREqIW3q4c7R6+ZW/JNJzpmZ/5z5OhXlqGEF9bjf4hKvI/x/MINDvKGHr5Ae3nEUPqVYxA3usYMFnOI8zo2w3WKp7OUbXIdzQgqQsICrCDILY2HYxxQ28PBHiQ/YQhXtpKxFzTslhGIGCQ10URuTdXsynP+LE0xgdVw2qpcRqVcNy8zjCY+olxkTdrGONTRL7IN02JDNOd/9XfTxHNJHK2efC84mTMuWpFEg7xk2sRW6lMk2PoKLbMPuZeNMZH5PoRm2Njo4ztczI1uOAQ5y+uIY2+FzJxYpjyXZNnainHmcRYC5SLsT5OUiOWE2UutGup8hvaj5uPhyZUSgGlYNv/MdLpR852/KwlNwtHMvzgAAAABJRU5ErkJggg=="
+
 func getEnv(name string, variable *string) {
 	var exist bool
 	*variable, exist = os.LookupEnv(name)
@@ -52,6 +54,7 @@ func init() {
 	var searchEngineConfig = searchEngine{
 		SearchEnginePluginURL: searchPluginPath,
 
+		Image:         peaceBase64,
 		ShortName:     "SearchProxy",
 		Description:   "Yandex for cyrilic letters, google for latin letters only and duckduckgo on weekends",
 		InputEncoding: "utf-8",
@@ -66,6 +69,7 @@ var openSearchTemplate = `<OpenSearchDescription xmlns="http://a9.com/-/spec/ope
                        xmlns:moz="http://www.mozilla.org/2006/browser/search/">
   <ShortName>{{.ShortName}}</ShortName>
   <Description>{{.Description}}</Description>
+  <Image height="16" width="16">{{.Image}}</Image>
   <InputEncoding>{{.InputEncoding}}</InputEncoding>
   <Url type="text/html" template="{{.URL}}">
     <Param name="{{.KeyName}}" value="{searchTerms}"/>
@@ -76,6 +80,9 @@ var discoveryPlugin = `
 <html>
 <header>
 <title>Register</title>
+<link rel="icon" 
+      type="image/base64" 
+      href="{{.Image}}">
 <link rel="search"
       type="application/opensearchdescription+xml"
       title="{{.ShortName}}"
@@ -124,6 +131,7 @@ func discovery(w http.ResponseWriter, r *http.Request) {
 		println(err.Error())
 	}
 }
+
 func searchPluginHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/xml")
 	w.WriteHeader(http.StatusOK)
@@ -174,5 +182,5 @@ type searchEngine struct {
 	// plugin discovery
 	SearchEnginePluginURL string
 	// plugin
-	ShortName, Description, InputEncoding, URL, KeyName string
+	ShortName, Description, Image, InputEncoding, URL, KeyName string
 }
