@@ -1,0 +1,23 @@
+# Ignore everything
+**
+
+# Allow files and directories
+
+## Dependencies
+!/go.mod
+!/go.sum
+
+## Source
+!/cmd/**
+!/internal/**
+!/pkg/**
+
+## Assets
+!/assets/**
+
+# Ignore unnecessary files inside allowed directories
+# This should go after the allowed directories
+**/*~
+**/*.log
+**/.DS_Store
+**/Thumbs.db

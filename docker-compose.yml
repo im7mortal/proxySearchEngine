@@ -1,0 +1,41 @@
+version: "2"
+services:
+
+  proxysearchengine:
+    build:
+      context: .
+    restart: always
+    expose:
+      # in this case the PORT env also should be 80. But ":80"
+      # the PORT env mainly used for standalone local deployments
+      - "80"
+    environment:
+      - PORT
+      - HOST
+      - VIRTUAL_HOST
+      - LETSENCRYPT_HOST
+      - LETSENCRYPT_EMAIL
+
+  nginx-proxy:
+    restart: always
+    logging:
+      driver: none
+    image: jwilder/nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/etc/nginx/vhost.d"
+      - "/usr/share/nginx/html"
+      - "/var/run/docker.sock:/tmp/docker.sock:ro"
+      - "/etc/nginx/certs"
+
+  letsencrypt-nginx-proxy-companion:
+    restart: always
+    logging:
+      driver: none
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    volumes_from:
+      - "nginx-proxy"
