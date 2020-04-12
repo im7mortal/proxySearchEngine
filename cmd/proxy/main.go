@@ -11,7 +11,6 @@ import (
 	"os"
 	"regexp"
 	"text/template"
-	"time"
 )
 
 var peaceBase64 = " data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAATVJREFUOI2N010uQ1EQB/BfxQONFA9YQLEL3n3tRCWaWoDUBohFIFYhnsQS8FofIREqIW3q4c7R6+ZW/JNJzpmZ/5z5OhXlqGEF9bjf4hKvI/x/MINDvKGHr5Ae3nEUPqVYxA3usYMFnOI8zo2w3WKp7OUbXIdzQgqQsICrCDILY2HYxxQ28PBHiQ/YQhXtpKxFzTslhGIGCQ10URuTdXsynP+LE0xgdVw2qpcRqVcNy8zjCY+olxkTdrGONTRL7IN02JDNOd/9XfTxHNJHK2efC84mTMuWpFEg7xk2sRW6lMk2PoKLbMPuZeNMZH5PoRm2Njo4ztczI1uOAQ5y+uIY2+FzJxYpjyXZNnainHmcRYC5SLsT5OUiOWE2UutGup8hvaj5uPhyZUSgGlYNv/MdLpR852/KwlNwtHMvzgAAAABJRU5ErkJggg=="
@@ -56,7 +55,7 @@ func init() {
 
 		Image:         peaceBase64,
 		ShortName:     "SearchProxy",
-		Description:   "Yandex for cyrilic letters, google for latin letters only and duckduckgo on weekends",
+		Description:   "Yandex for cyrilic letters, qwant for rest",
 		InputEncoding: "utf-8",
 		URL:           searchURL.String(),
 		KeyName:       querySearchKey,
@@ -142,9 +141,8 @@ func searchPluginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 const (
-	google     = "https://www.google.com/search?q="
+	qwant     = "https://www.qwant.com/?t=web&q="
 	yandex     = "https://yandex.ru/search/?text="
-	duckduckgo = "https://duckduckgo.com/?q="
 )
 
 var cyrilicR *regexp.Regexp
@@ -167,11 +165,7 @@ func proxysearchengine(w http.ResponseWriter, r *http.Request) {
 	if val, exist := queries[querySearchKey]; exist {
 		q = val[0]
 	}
-	searchUrl := google
-	weekday := time.Now().Weekday()
-	if weekday == time.Saturday || weekday == time.Sunday {
-		searchUrl = duckduckgo
-	}
+	searchUrl := qwant
 	if russianLetters(q) {
 		searchUrl = yandex
 	}
